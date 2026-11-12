@@ -1,5 +1,3 @@
-# m-hukos
-Restaurant ordering system. CPE212 final project.
 # M-HuKOS : Mr. Hungry Kitchen's Ordering System
 
 A web app for Mr. Hungry Kitchen: menu browsing, online ordering and payment, advanced (scheduled) orders, QR-code order pickup, a points system, and customer reviews. Built as a finals project.
