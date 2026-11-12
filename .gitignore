@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+.angular/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Uploaded files (menu images) during development
+backend/uploads/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
