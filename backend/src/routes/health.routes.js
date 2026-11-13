@@ -9,7 +9,6 @@ router.get('/', async (req, res) => {
     await pingDatabase();
     res.json({ status: 'ok', database: 'connected' });
   } catch (err) {
-    // The API itself is running, but MySQL is not reachable.
     res.status(503).json({ status: 'degraded', database: 'unreachable' });
   }
 });

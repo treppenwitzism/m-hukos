@@ -1,6 +1,3 @@
--- Restaurant ordering system: MySQL schema
--- Matches the ERD in the System & Data Design document.
-
 CREATE DATABASE IF NOT EXISTS restaurant_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
