@@ -17,7 +17,7 @@ git pull
 git checkout -b feature/menu-api
 ```
 
-## Daily routine
+## Routine
 
 1. `git pull` on `main` before starting new work.
 2. Make small commits as you go.
