@@ -1,22 +1,59 @@
-# Frontend (Angular)
+# RestaurantFrontend
 
-From the repository root:
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.7.
+
+## Development server
+
+To start a local development server, run:
 
 ```bash
-npm install -g @angular/cli
-ng new restaurant-frontend --directory frontend --routing --style=scss --skip-git
+ng serve
 ```
 
-If `ng new` complains that the folder is not empty, delete this README first, run the command, then add the README back.
+Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-Planned feature areas (one folder each under `src/app/`):
+## Code scaffolding
 
-- `core/` services, guards, interceptors (auth, API client)
-- `shared/` reusable components (buttons, star rating, QR display)
-- `features/menu/` menu browsing
-- `features/cart/` cart and order review
-- `features/orders/` order history and QR page
-- `features/account/` profile, points
-- `features/reviews/` review forms and lists
-- `features/admin/` menu, prices, availability, reviews, users
-- `features/staff/` QR scan and order verification
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+
+```bash
+ng generate component component-name
+```
+
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+
+```bash
+ng generate --help
+```
+
+## Building
+
+To build the project run:
+
+```bash
+ng build
+```
+
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+## Running unit tests
+
+To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+
+```bash
+ng test
+```
+
+## Running end-to-end tests
+
+For end-to-end (e2e) testing, run:
+
+```bash
+ng e2e
+```
+
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+
+## Additional Resources
+
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
