@@ -21,4 +21,20 @@ async function pingDatabase() {
   }
 }
 
-module.exports = { pool, pingDatabase };
+// Runs several queries as one all-or-nothing unit.
+async function withTransaction(work) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const result = await work(connection);
+    await connection.commit();
+    return result;
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+
+module.exports = { pool, pingDatabase, withTransaction };
