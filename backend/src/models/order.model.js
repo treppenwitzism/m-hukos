@@ -69,10 +69,27 @@ async function listOrdersByUser(userId, limit = 50) {
   return attachItems(rows);
 }
 
-// Only changes the order if it is still pending. Returns true if it changed
+// Changes only if still pending
 async function cancelIfPending(id) {
   const [result] = await pool.query(
     "UPDATE orders SET status = 'cancelled' WHERE id = ? AND status = 'pending'",
+    [id]
+  );
+  return result.affectedRows === 1;
+}
+
+// Also only changes if still pending
+async function markPaidIfPending(id, db = pool) {
+  const [result] = await db.query(
+    "UPDATE orders SET status = 'paid' WHERE id = ? AND status = 'pending'",
+    [id]
+  );
+  return result.affectedRows === 1;
+}
+
+async function markFulfilled(id, db = pool) {
+  const [result] = await db.query(
+    "UPDATE orders SET status = 'fulfilled' WHERE id = ? AND status = 'paid'",
     [id]
   );
   return result.affectedRows === 1;
@@ -85,4 +102,6 @@ module.exports = {
   findOrderById,
   listOrdersByUser,
   cancelIfPending,
+  markPaidIfPending,
+  markFulfilled
 };

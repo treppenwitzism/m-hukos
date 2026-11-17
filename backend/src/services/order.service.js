@@ -1,9 +1,20 @@
 const { withTransaction } = require('../config/db');
 const Order = require('../models/order.model');
 const httpError = require('../utils/httpError');
+const crypto = require('crypto');
+const QrToken = require('../models/qrToken.model');
 
 const MAX_LINES = 30;
 const MAX_QUANTITY = 20;
+const QR_TTL_HOURS = Number(process.env.QR_TOKEN_TTL_HOURS) || 24;
+
+// For advanced orders: clock starts at the pickup time
+function tokenExpiry(scheduledFor) {
+  const start = scheduledFor
+    ? Math.max(Date.now(), new Date(scheduledFor).getTime())
+    : Date.now();
+  return new Date(start + QR_TTL_HOURS * 60 * 60 * 1000);
+}
 
 // Checks the request shape and merges repeated items into one line each,
 // so [{id 1, qty 1}, {id 1, qty 2}] becomes id 1 with qty 3
@@ -106,4 +117,30 @@ async function cancelOrder(user, id) {
   return Order.findOrderById(id);
 }
 
-module.exports = { createOrder, listMyOrders, getOrder, cancelOrder };
+// Called when payment is confirmed by PayMongo webhook
+async function markPaid(orderId) {
+  const order = await Order.findOrderById(orderId);
+  if (!order) throw httpError(404, 'Order not found.');
+
+  await withTransaction(async (db) => {
+    const changed = await Order.markPaidIfPending(orderId, db);
+    if (!changed) return;
+
+    await QrToken.create(
+      {
+        order_id: orderId,
+        token: crypto.randomBytes(24).toString('hex'),
+        expires_at: tokenExpiry(order.scheduled_for),
+      },
+      db
+    );
+  });
+
+  const updated = await Order.findOrderById(orderId);
+  if (!['paid', 'fulfilled'].includes(updated.status)) {
+    throw httpError(409, 'Only pending orders can be marked as paid.');
+  }
+  return updated;
+}
+
+module.exports = { createOrder, listMyOrders, getOrder, cancelOrder, markPaid };
