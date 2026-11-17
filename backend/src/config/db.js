@@ -1,5 +1,3 @@
-// Database connection: one shared pool that every part of the API reuses.
-// A pool keeps several connections open so requests don't wait on each other.
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
@@ -10,11 +8,10 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'restaurant_db',
   waitForConnections: true,
   connectionLimit: 10,
-  // Return DECIMAL columns (prices) as numbers instead of strings
   decimalNumbers: true,
 });
 
-// Used by the health check to confirm the database is reachable.
+// Used by healthcheck endpoint to see if database is reachable.
 async function pingDatabase() {
   const connection = await pool.getConnection();
   try {

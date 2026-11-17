@@ -1,4 +1,4 @@
-// Entry point: loads settings from .env, then starts listening for requests.
+// Loads settings from .env
 require('dotenv').config();
 
 const app = require('./app');
