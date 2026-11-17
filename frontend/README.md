@@ -1,7 +1,5 @@
 # Frontend (Angular)
 
-This folder is intentionally empty for now. One person on the team generates the Angular project once, commits it, and everyone else pulls it. Do not each generate your own.
-
 From the repository root:
 
 ```bash

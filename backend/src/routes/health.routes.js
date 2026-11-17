@@ -1,4 +1,4 @@
-// GET /api/health: tells you (and later, the hosting service) if the API and database are up.
+// GET /api/health to see if API is running and database is reachable.
 const express = require('express');
 const { pingDatabase } = require('../config/db');
 

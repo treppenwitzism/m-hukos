@@ -1,7 +1,5 @@
 # Contributing
 
-How we work together on this repository.
-
 ## Branches
 
 - `main` always holds working code. Nobody pushes to it directly.
