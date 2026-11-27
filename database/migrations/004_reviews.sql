@@ -1,0 +1,5 @@
+ALTER TABLE reviews
+  ADD UNIQUE KEY uq_reviews_user_item (user_id, menu_item_id);
+
+ALTER TABLE reviews
+  ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
