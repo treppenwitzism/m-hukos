@@ -10,12 +10,16 @@ async function listCategoriesWithItems() {
     'SELECT id, name, sort_order FROM categories ORDER BY sort_order, id'
   );
   const [items] = await pool.query(
-    `SELECT id, category_id, name, description, price, image_url, is_available, points_reward
+    `SELECT id, category_id, name, description, price, image_url, is_available, points_reward,
+          (SELECT ROUND(AVG(r.rating), 1) FROM reviews r
+            WHERE r.menu_item_id = menu_items.id AND r.status = 'visible') AS avg_rating,
+          (SELECT COUNT(*) FROM reviews r
+            WHERE r.menu_item_id = menu_items.id AND r.status = 'visible') AS review_count
      FROM menu_items WHERE is_deleted = 0 ORDER BY name`
   );
   return categories.map((category) => ({
     ...category,
-    items: items.filter((item) => item.category_id === category.id).map(toItem),
+    items: items.filter((item) => item.category_id === category.id).map((row) => toItem(row, { avg_rating: row.avg_rating, review_count: row.review_count })),
   }));
 }
 
