@@ -18,6 +18,20 @@ function tokenExpiry(scheduledFor) {
   return new Date(start + QR_TTL_HOURS * 60 * 60 * 1000);
 }
 
+const PAYMENT_METHODS = ['counter', 'paymongo'];
+
+function parsePaymentMethod(value, scheduledFor) {
+  // Default: counter for pickup-now orders, online for scheduled ones
+  const method = value === undefined ? (scheduledFor ? 'paymongo' : 'counter') : value;
+  if (!PAYMENT_METHODS.includes(method)) {
+    throw httpError(400, "payment_method must be 'counter' or 'paymongo'.");
+  }
+  if (method === 'counter' && scheduledFor) {
+    throw httpError(400, 'Scheduled orders must be paid online.');
+  }
+  return method;
+}
+
 // Checks the request shape and merges repeated items into one line each,
 // so [{id 1, qty 1}, {id 1, qty 2}] becomes id 1 with qty 3
 function parseLines(items) {
@@ -53,6 +67,7 @@ function parseLines(items) {
 async function createOrder(user, body) {
   const quantities = parseLines(body.items);
   const scheduledFor = body.scheduled_for ? Schedule.parsePickupTime(body.scheduled_for) : null;
+  const paymentMethod = parsePaymentMethod(body.payment_method, scheduledFor);
 
   // Any error undones the whole transaction
   const orderId = await withTransaction(async (db) => {
@@ -87,6 +102,19 @@ async function createOrder(user, body) {
       db
     );
     await Order.createOrderItems(id, lines, db);
+    await Order.setPaymentMethod(id, paymentMethod, db);
+
+    // Counter orders get their QR straight away so staff can scan it at the counter.
+    if (paymentMethod === 'counter') {
+      await QrToken.create(
+        {
+          order_id: id,
+          token: crypto.randomBytes(24).toString('hex'),
+          expires_at: tokenExpiry(null),
+        },
+        db
+      );
+    }
     return id;
   });
 
@@ -125,6 +153,9 @@ async function cancelOrder(user, id) {
 async function markPaid(orderId) {
   const order = await Order.findOrderById(orderId);
   if (!order) throw httpError(404, 'Order not found.');
+  if (order.payment_method === 'counter') {
+    throw httpError(409, 'Counter orders are paid by staff at the counter.');
+  }
 
   await withTransaction(async (db) => {
     const changed = await Order.markPaidIfPending(orderId, db);

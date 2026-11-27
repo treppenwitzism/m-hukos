@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const app = require('./app');
 const { start: startQrCleanup } = require('./jobs/expireQrTokens');
+const { start: startOrderExpiry } = require('./jobs/expirePendingOrders');
 
 const port = Number(process.env.PORT) || 3000;
 

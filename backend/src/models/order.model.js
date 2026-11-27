@@ -51,7 +51,7 @@ async function attachItems(orders) {
 
 async function findOrderById(id) {
   const [rows] = await pool.query(
-    'SELECT id, user_id, status, total, scheduled_for, created_at FROM orders WHERE id = ?',
+    'SELECT id, user_id, status, total, payment_method, scheduled_for, created_at FROM orders WHERE id = ?',
     [id]
   );
   if (!rows[0]) return null;
@@ -61,7 +61,7 @@ async function findOrderById(id) {
 
 async function listOrdersByUser(userId, limit = 50) {
   const [rows] = await pool.query(
-    `SELECT id, user_id, status, total, scheduled_for, created_at
+    `SELECT id, user_id, status, total, payment_method, scheduled_for, created_at
      FROM orders WHERE user_id = ?
      ORDER BY created_at DESC, id DESC LIMIT ?`,
     [userId, limit]
@@ -109,6 +109,24 @@ async function listScheduled(from, to, db = pool) {
   return rows;
 }
 
+async function setPaymentMethod(id, method, db = pool) {
+  await db.query('UPDATE orders SET payment_method = ? WHERE id = ?', [method, id]);
+}
+
+// Marks stale unpaid orders as expired. Returns how many changed.
+async function expireStalePending({ onlineBefore, counterBefore }, db = pool) {
+  const [result] = await db.query(
+    `UPDATE orders SET status = 'expired'
+      WHERE status = 'pending'
+        AND (
+          (payment_method = 'counter' AND created_at < ?)
+          OR (COALESCE(payment_method, 'paymongo') <> 'counter' AND created_at < ?)
+        )`,
+    [counterBefore, onlineBefore]
+  );
+  return result.affectedRows;
+}
+
 module.exports = {
   findMenuItemsByIds,
   createOrder,
@@ -118,5 +136,7 @@ module.exports = {
   cancelIfPending,
   markPaidIfPending,
   markFulfilled,
-  listScheduled
+  listScheduled,
+  setPaymentMethod,
+  expireStalePending
 };
