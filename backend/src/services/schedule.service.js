@@ -73,4 +73,4 @@ async function listScheduled(dateStr) {
   return { date, orders: await Order.listScheduled(from, to) };
 }
 
-module.exports = { parsePickupTime, slotsForDate, listScheduled };
+module.exports = { parsePickupTime, slotsForDate, listScheduled, dayBounds, todayLocal };
