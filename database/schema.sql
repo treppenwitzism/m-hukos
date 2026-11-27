@@ -123,3 +123,5 @@ CREATE TABLE reviews (
   CONSTRAINT fk_reviews_menu_item
     FOREIGN KEY (menu_item_id) REFERENCES menu_items (id)
 ) ENGINE=InnoDB;
+
+CREATE INDEX idx_orders_scheduled_for ON orders (scheduled_for);

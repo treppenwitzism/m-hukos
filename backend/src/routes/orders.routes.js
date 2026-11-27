@@ -9,6 +9,7 @@ router.use(requireAuth);
 
 router.post('/', controller.create);
 router.get('/', controller.listMine);
+router.get('/pickup-slots', controller.pickupSlots);
 router.get('/:id', controller.getOne);
 router.get('/:id/qr', qrController.getForOrder);
 router.post('/:id/cancel', controller.cancel);

@@ -1,0 +1,1 @@
+CREATE INDEX idx_orders_scheduled_for ON orders (scheduled_for);

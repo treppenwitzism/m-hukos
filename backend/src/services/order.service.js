@@ -4,6 +4,7 @@ const httpError = require('../utils/httpError');
 const crypto = require('crypto');
 const QrToken = require('../models/qrToken.model');
 const Points = require('./points.service');
+const Schedule = require('./schedule.service');
 
 const MAX_LINES = 30;
 const MAX_QUANTITY = 20;
@@ -51,6 +52,7 @@ function parseLines(items) {
 
 async function createOrder(user, body) {
   const quantities = parseLines(body.items);
+  const scheduledFor = body.scheduled_for ? Schedule.parsePickupTime(body.scheduled_for) : null;
 
   // Any error undones the whole transaction
   const orderId = await withTransaction(async (db) => {
@@ -81,7 +83,7 @@ async function createOrder(user, body) {
     );
 
     const id = await Order.createOrder(
-      { user_id: user.id, total: totalCents / 100, scheduled_for: null },
+      { user_id: user.id, total: totalCents / 100, scheduled_for: scheduledFor },
       db
     );
     await Order.createOrderItems(id, lines, db);

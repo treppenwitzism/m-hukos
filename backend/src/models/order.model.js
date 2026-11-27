@@ -95,6 +95,20 @@ async function markFulfilled(id, db = pool) {
   return result.affectedRows === 1;
 }
 
+async function listScheduled(from, to, db = pool) {
+  const [rows] = await db.query(
+    `SELECT o.id, o.status, o.total, o.scheduled_for, u.name AS customer_name
+       FROM orders o
+       JOIN users u ON u.id = o.user_id
+      WHERE o.scheduled_for IS NOT NULL
+        AND o.scheduled_for >= ? AND o.scheduled_for < ?
+        AND o.status IN ('pending', 'paid')
+      ORDER BY o.scheduled_for ASC`,
+    [from, to]
+  );
+  return rows;
+}
+
 module.exports = {
   findMenuItemsByIds,
   createOrder,
@@ -103,5 +117,6 @@ module.exports = {
   listOrdersByUser,
   cancelIfPending,
   markPaidIfPending,
-  markFulfilled
+  markFulfilled,
+  listScheduled
 };
