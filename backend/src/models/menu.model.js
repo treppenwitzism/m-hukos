@@ -3,14 +3,14 @@ const { pool } = require('../config/db');
 const toItem = (row) => ({ ...row, is_available: Boolean(row.is_available) });
 
 // The only columns an admin may edit.
-const EDITABLE = ['category_id', 'name', 'description', 'price', 'image_url'];
+const EDITABLE = ['category_id', 'name', 'description', 'price', 'image_url', 'points_reward'];
 
 async function listCategoriesWithItems() {
   const [categories] = await pool.query(
     'SELECT id, name, sort_order FROM categories ORDER BY sort_order, id'
   );
   const [items] = await pool.query(
-    `SELECT id, category_id, name, description, price, image_url, is_available
+    `SELECT id, category_id, name, description, price, image_url, is_available, points_reward
      FROM menu_items WHERE is_deleted = 0 ORDER BY name`
   );
   return categories.map((category) => ({
@@ -21,7 +21,7 @@ async function listCategoriesWithItems() {
 
 async function findItemById(id) {
   const [rows] = await pool.query(
-    `SELECT id, category_id, name, description, price, image_url, is_available
+    `SELECT id, category_id, name, description, price, image_url, is_available, points_reward
      FROM menu_items WHERE id = ? AND is_deleted = 0`,
     [id]
   );
@@ -44,13 +44,14 @@ async function createCategory({ name, sort_order }) {
   return result.insertId;
 }
 
-async function createItem({ category_id, name, description, price, image_url }) {
+async function createItem({ category_id, name, description, price, image_url, points_reward }) {
   const [result] = await pool.query(
-    'INSERT INTO menu_items (category_id, name, description, price, image_url) VALUES (?, ?, ?, ?, ?)',
-    [category_id, name, description, price, image_url]
+    'INSERT INTO menu_items (category_id, name, description, price, image_url, points_reward) VALUES (?, ?, ?, ?, ?, ?)',
+    [category_id, name, description, price, image_url, points_reward]
   );
   return result.insertId;
 }
+
 async function updateItem(id, fields) {
   const sets = [];
   const values = [];

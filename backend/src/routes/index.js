@@ -8,6 +8,7 @@ router.use('/menu', require('./menu.routes'));
 router.use('/admin/menu', require('./admin.menu.routes'));
 router.use('/orders', require('./orders.routes'));
 router.use('/staff', require('./staff.routes'));
+router.use(require('./points.routes'));
 
 // Only exists outside production
 if (process.env.NODE_ENV !== 'production') {
