@@ -2,7 +2,7 @@ const { pool } = require('../config/db');
 
 async function findMenuItemsByIds(ids, db = pool) {
   const [rows] = await db.query(
-    'SELECT id, name, price, is_available FROM menu_items WHERE id IN (?) AND is_deleted = 0',
+    'SELECT id, name, price, is_available, points_reward FROM menu_items WHERE id IN (?) AND is_deleted = 0',
     [ids]
   );
   return rows;
@@ -18,9 +18,9 @@ async function createOrder({ user_id, total, scheduled_for }, db = pool) {
 
 // One INSERT for all lines
 async function createOrderItems(orderId, lines, db = pool) {
-  const values = lines.map((line) => [orderId, line.menu_item_id, line.quantity, line.unit_price]);
+  const values = lines.map((line) => [orderId, line.menu_item_id, line.quantity, line.unit_price, line.points_each]);
   await db.query(
-    'INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES ?',
+    'INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, points_each) VALUES ?',
     [values]
   );
 }
@@ -30,7 +30,7 @@ async function attachItems(orders) {
   if (orders.length === 0) return [];
 
   const [items] = await pool.query(
-    `SELECT oi.order_id, oi.id, oi.menu_item_id, mi.name, oi.quantity, oi.unit_price
+    `SELECT oi.order_id, oi.id, oi.menu_item_id, mi.name, oi.quantity, oi.unit_price, oi.points_each
      FROM order_items oi
      JOIN menu_items mi ON mi.id = oi.menu_item_id
      WHERE oi.order_id IN (?)

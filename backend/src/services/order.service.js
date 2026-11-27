@@ -3,6 +3,7 @@ const Order = require('../models/order.model');
 const httpError = require('../utils/httpError');
 const crypto = require('crypto');
 const QrToken = require('../models/qrToken.model');
+const Points = require('./points.service');
 
 const MAX_LINES = 30;
 const MAX_QUANTITY = 20;
@@ -70,6 +71,7 @@ async function createOrder(user, body) {
       menu_item_id: item.id,
       quantity: quantities.get(item.id),
       unit_price: item.price,
+      points_each: item.points_reward,
     }));
 
     // Add up in whole cents
@@ -134,6 +136,7 @@ async function markPaid(orderId) {
       },
       db
     );
+    await Points.awardForOrder(order, db);
   });
 
   const updated = await Order.findOrderById(orderId);

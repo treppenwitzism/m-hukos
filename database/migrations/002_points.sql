@@ -1,0 +1,8 @@
+ALTER TABLE menu_items
+  ADD COLUMN points_reward INT UNSIGNED NOT NULL DEFAULT 0 AFTER price;
+
+ALTER TABLE order_items
+  ADD COLUMN points_each INT UNSIGNED NOT NULL DEFAULT 0 AFTER unit_price;
+
+ALTER TABLE orders
+  ADD COLUMN points_earned INT UNSIGNED NOT NULL DEFAULT 0;
