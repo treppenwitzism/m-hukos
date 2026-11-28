@@ -1,4 +1,4 @@
-import { Order } from './models';
+import { Order, OrderStatus } from './models';
 
 export function hasQr(order: Order): boolean {
   return order.status === 'paid' || (order.status === 'pending' && order.payment_method === 'counter');
@@ -21,4 +21,19 @@ export function statusLabel(order: Order): string {
 
 export function itemsSummary(order: Order): string {
   return order.items.map((i) => `${i.quantity} × ${i.name}`).join(', ');
+}
+
+export function statusName(status: OrderStatus): string {
+  switch (status) {
+    case 'pending':
+      return 'Pending';
+    case 'paid':
+      return 'Paid';
+    case 'fulfilled':
+      return 'Fulfilled';
+    case 'cancelled':
+      return 'Cancelled';
+    case 'expired':
+      return 'Expired';
+  }
 }

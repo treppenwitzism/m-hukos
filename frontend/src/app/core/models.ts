@@ -118,3 +118,28 @@ export interface StaffLookup {
   customer: { name: string };
   order: Order;
 }
+
+export interface AdminOrderRow {
+  id: number;
+  status: OrderStatus;
+  total: number;
+  scheduled_for: string | null;
+  created_at: string;
+  customer_name: string;
+}
+
+export interface ScheduledRow {
+  id: number;
+  status: OrderStatus;
+  total: number;
+  scheduled_for: string;
+  customer_name: string;
+}
+
+export interface DashboardData {
+  orders_today: number;
+  sales_today: number;
+  awaiting_pickup: number;
+  recent_orders: AdminOrderRow[];
+  upcoming_scheduled: ScheduledRow[];
+}

@@ -93,7 +93,8 @@ export class LoginComponent {
       next: () => {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
         const role = this.auth.role();
-        this.router.navigateByUrl(returnUrl || (role === 'staff' ? '/staff' : '/'));
+        const homes = { admin: '/admin', staff: '/staff', customer: '/' };
+        this.router.navigateByUrl(returnUrl || homes[role ?? 'customer']);
       },
       error: (err) => {
         this.error.set(errorMessage(err));
