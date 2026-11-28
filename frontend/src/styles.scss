@@ -1,1 +1,6 @@
-/* You can add global styles to this file, and also import other style files */
+.status { display: inline-block; padding: 4px 10px; border: 1.5px solid #3d4450; border-radius: 999px;
+          font-size: 12px; font-weight: 600; white-space: nowrap; }
+.status.s-pending { border-style: dashed; }
+.status.s-paid { background: #e6f4ea; border-color: #1a7f37; color: #1a7f37; }
+.status.s-fulfilled { background: #e4e7ec; }
+.status.s-cancelled, .status.s-expired { border-color: #8a93a1; color: #5c6470; }
