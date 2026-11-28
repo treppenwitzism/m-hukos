@@ -13,4 +13,10 @@ export class MenuService {
       .get<{ categories: Category[] }>(`${environment.apiUrl}/menu`)
       .pipe(map((res) => res.categories));
   }
+
+    getItem(id: number) {
+    return this.getMenu().pipe(
+      map((categories) => categories.flatMap((c) => c.items).find((i) => i.id === id) ?? null)
+    );
+  }
 }

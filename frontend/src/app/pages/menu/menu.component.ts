@@ -4,11 +4,12 @@ import { MenuService } from '../../core/menu.service';
 import { CartService } from '../../core/cart.service';
 import { Category } from '../../core/models';
 import { errorMessage } from '../../core/http-error';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-menu',
-  imports: [CurrencyPipe],
-  template: `
+    selector: 'app-menu',
+    imports: [CurrencyPipe, RouterLink],
+    template: `
     <div class="page">
       <input class="search" type="search" placeholder="Search the menu" aria-label="Search the menu"
              [value]="search()" (input)="onSearch($event)" />
@@ -32,15 +33,15 @@ import { errorMessage } from '../../core/http-error';
       } @else {
         @for (item of items(); track item.id) {
           <article class="card" [class.off]="!item.is_available">
-            <div class="photo">
-              @if (item.image_url) {
+            <a class="photo" [routerLink]="['/item', item.id]">
+            @if (item.image_url) {
                 <img [src]="item.image_url" [alt]="item.name" />
-              } @else {
+            } @else {
                 <span>Photo</span>
-              }
-            </div>
+                }
+            </a>
             <div class="info">
-              <strong>{{ item.name }}</strong>
+              <a class="name" [routerLink]="['/item', item.id]"><strong>{{ item.name }}</strong></a>
               @if (item.description) {
                 <span class="desc">{{ item.description }}</span>
               }
@@ -68,7 +69,8 @@ import { errorMessage } from '../../core/http-error';
       }
     </div>
   `,
-  styles: `
+    styles: `
+    .name, .photo { color: inherit; text-decoration: none; }
     .page { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
     .search { height: 44px; padding: 0 12px; border: 1.5px solid #3d4450; border-radius: 8px; font-size: 15px; }
     .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
@@ -94,48 +96,48 @@ import { errorMessage } from '../../core/http-error';
   `,
 })
 export class MenuComponent {
-  private menuService = inject(MenuService);
-  cart = inject(CartService);
+    private menuService = inject(MenuService);
+    cart = inject(CartService);
 
-  categories = signal<Category[]>([]);
-  loading = signal(true);
-  error = signal('');
-  selectedCategory = signal<number | null>(null);
-  search = signal('');
+    categories = signal<Category[]>([]);
+    loading = signal(true);
+    error = signal('');
+    selectedCategory = signal<number | null>(null);
+    search = signal('');
 
-  chips = computed(() => this.categories().filter((c) => c.items.length > 0));
+    chips = computed(() => this.categories().filter((c) => c.items.length > 0));
 
-  items = computed(() => {
-    const q = this.search().trim().toLowerCase();
-    const selected = this.selectedCategory();
-    return this.categories()
-      .filter((c) => selected === null || c.id === selected)
-      .flatMap((c) => c.items)
-      .filter(
-        (i) => !q || i.name.toLowerCase().includes(q) || (i.description ?? '').toLowerCase().includes(q)
-      );
-  });
-
-  constructor() {
-    this.load();
-  }
-
-  load() {
-    this.loading.set(true);
-    this.error.set('');
-    this.menuService.getMenu().subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(errorMessage(err));
-        this.loading.set(false);
-      },
+    items = computed(() => {
+        const q = this.search().trim().toLowerCase();
+        const selected = this.selectedCategory();
+        return this.categories()
+            .filter((c) => selected === null || c.id === selected)
+            .flatMap((c) => c.items)
+            .filter(
+                (i) => !q || i.name.toLowerCase().includes(q) || (i.description ?? '').toLowerCase().includes(q)
+            );
     });
-  }
 
-  onSearch(event: Event) {
-    this.search.set((event.target as HTMLInputElement).value);
-  }
+    constructor() {
+        this.load();
+    }
+
+    load() {
+        this.loading.set(true);
+        this.error.set('');
+        this.menuService.getMenu().subscribe({
+            next: (categories) => {
+                this.categories.set(categories);
+                this.loading.set(false);
+            },
+            error: (err) => {
+                this.error.set(errorMessage(err));
+                this.loading.set(false);
+            },
+        });
+    }
+
+    onSearch(event: Event) {
+        this.search.set((event.target as HTMLInputElement).value);
+    }
 }
