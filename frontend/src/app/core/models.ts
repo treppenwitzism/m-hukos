@@ -12,3 +12,23 @@ export interface AuthResponse {
   user: User;
   token: string;
 }
+
+export interface MenuItem {
+  id: number;
+  category_id: number;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  is_available: boolean;
+  points_reward: number;
+  avg_rating?: number | null;
+  review_count?: number;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  sort_order: number;
+  items: MenuItem[];
+}
