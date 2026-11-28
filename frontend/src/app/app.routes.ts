@@ -13,6 +13,7 @@ import { StaffVerifyComponent } from './pages/staff/staff-verify.component';
 import { AdminLayoutComponent } from './layout/admin-layout.component';
 import { AdminDashboardComponent } from './pages/admin/dashboard.component';
 import { AdminMenuComponent } from './pages/admin/menu-admin.component';
+import { AdminOrdersComponent } from './pages/admin/orders-admin.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -32,6 +33,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: AdminDashboardComponent },
       { path: 'menu', component: AdminMenuComponent },
+      { path: 'orders', component: AdminOrdersComponent },
       { path: '**', redirectTo: '' },
     ],
   },

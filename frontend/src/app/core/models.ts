@@ -126,6 +126,7 @@ export interface AdminOrderRow {
   scheduled_for: string | null;
   created_at: string;
   customer_name: string;
+  payment_method: PaymentMethod | null;
 }
 
 export interface ScheduledRow {
@@ -142,4 +143,15 @@ export interface DashboardData {
   awaiting_pickup: number;
   recent_orders: AdminOrderRow[];
   upcoming_scheduled: ScheduledRow[];
+}
+
+export interface AdminOrdersPage {
+  orders: AdminOrderRow[];
+  total: number;
+}
+
+export interface AdminOrderDetail {
+  order: Order;
+  customer: { id: number; name: string; email: string } | null;
+  qr: { expires_at: string; redeemed_at: string | null } | null;
 }

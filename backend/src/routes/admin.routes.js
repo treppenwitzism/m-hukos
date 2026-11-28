@@ -8,5 +8,6 @@ router.get('/admin/dashboard', ...adminOnly, ctrl.dashboard);
 router.get('/admin/orders', ...adminOnly, ctrl.listOrders);
 router.get('/admin/users', ...adminOnly, ctrl.listUsers);
 router.patch('/admin/users/:id/role', ...adminOnly, ctrl.setRole);
+router.get('/admin/orders/:id', ...adminOnly, ctrl.getOrder);
 
 module.exports = router;
