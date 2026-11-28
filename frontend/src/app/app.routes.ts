@@ -5,6 +5,8 @@ import { LoginComponent } from './pages/login/login.component';
 import { ItemComponent } from './pages/item/item.component';
 import { authGuard } from './core/guards';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
+import { OrdersComponent } from './pages/orders/orders.component';
+import { OrderDetailComponent } from './pages/orders/order-detail.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -14,7 +16,9 @@ export const routes: Routes = [
     children: [
       { path: '', component: MenuComponent },
       { path: 'item/:id', component: ItemComponent },
-            { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
+      { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
+      { path: 'orders', component: OrdersComponent, canActivate: [authGuard] },
+      { path: 'orders/:id', component: OrderDetailComponent, canActivate: [authGuard] },
     ],
   },
   { path: '**', redirectTo: '' },

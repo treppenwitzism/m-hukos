@@ -1,37 +1,18 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CartService, MAX_QUANTITY } from '../../core/cart.service';
 import { MenuService } from '../../core/menu.service';
 import { OrderService, CreateOrderBody } from '../../core/order.service';
-import { Order, PaymentMethod } from '../../core/models';
+import { PaymentMethod } from '../../core/models';
 import { errorMessage } from '../../core/http-error';
 import { environment } from '../../../environments/environment';
 
 @Component({
-  selector: 'app-checkout',
-  imports: [RouterLink, CurrencyPipe, DatePipe],
-  template: `
+    selector: 'app-checkout',
+    imports: [RouterLink, CurrencyPipe, DatePipe],
+    template: `
     <div class="page">
-      @if (placed(); as order) {
-        <section class="done">
-          <h1>Order #{{ order.id }} placed</h1>
-          <p class="total">
-            {{ order.total | currency: 'PHP' : 'symbol-narrow' : '1.0-2' }}
-            @if (order.scheduled_for) {
-              · pickup {{ order.scheduled_for | date: 'EEE d MMM, h:mm a' }}
-            } @else {
-              · pickup as soon as possible
-            }
-          </p>
-          @if (order.payment_method === 'counter') {
-            <p>Pay at the counter when you pick it up. Your QR code appears here in the next step.</p>
-          } @else {
-            <p>Waiting for online payment. This part comes with PayMongo.</p>
-          }
-          <a routerLink="/" class="primary">Back to the menu</a>
-        </section>
-      } @else {
         <h1>Review order</h1>
 
         @if (menuError()) {
@@ -133,10 +114,9 @@ import { environment } from '../../../environments/environment';
             </span>
           </footer>
         }
-      }
     </div>
   `,
-  styles: `
+    styles: `
     .page { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
     h1 { margin: 0; font-size: 20px; }
     .note { text-align: center; color: #5c6470; margin: 24px 0 0; }
@@ -172,131 +152,129 @@ import { environment } from '../../../environments/environment';
     .secondary { min-height: 48px; border: 1.5px solid #3d4450; border-radius: 8px; background: #fff; font-weight: 600;
                  font-size: 15px; cursor: pointer; }
     button:disabled { opacity: 0.5; cursor: default; }
-    .done { display: flex; flex-direction: column; gap: 12px; }
-    .done .total { font-size: 16px; font-weight: 600; margin: 0; }
   `,
 })
 export class CheckoutComponent {
-  cart = inject(CartService);
-  private menuService = inject(MenuService);
-  private orderService = inject(OrderService);
+    cart = inject(CartService);
+    private menuService = inject(MenuService);
+    private orderService = inject(OrderService);
+    private router = inject(Router);
 
-  readonly onlineEnabled = environment.onlinePaymentsEnabled;
-  readonly maxQuantity = MAX_QUANTITY;
-  readonly today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local time
+    readonly onlineEnabled = environment.onlinePaymentsEnabled;
+    readonly maxQuantity = MAX_QUANTITY;
+    readonly today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local time
 
-  menuLoaded = signal(false);
-  menuError = signal('');
-  availableIds = signal<Set<number>>(new Set());
+    menuLoaded = signal(false);
+    menuError = signal('');
+    availableIds = signal<Set<number>>(new Set());
 
-  pickup = signal<'asap' | 'later'>('asap');
-  date = signal('');
-  slots = signal<string[]>([]);
-  slot = signal('');
-  slotsLoading = signal(false);
-  slotsError = signal('');
+    pickup = signal<'asap' | 'later'>('asap');
+    date = signal('');
+    slots = signal<string[]>([]);
+    slot = signal('');
+    slotsLoading = signal(false);
+    slotsError = signal('');
 
-  submitting = signal(false);
-  error = signal('');
-  placed = signal<Order | null>(null);
+    submitting = signal(false);
+    error = signal('');
 
-  isScheduled = computed(() => this.pickup() === 'later');
+    isScheduled = computed(() => this.pickup() === 'later');
 
-  problemIds = computed(() =>
-    this.menuLoaded()
-      ? new Set(this.cart.lines().filter((l) => !this.availableIds().has(l.id)).map((l) => l.id))
-      : new Set<number>()
-  );
+    problemIds = computed(() =>
+        this.menuLoaded()
+            ? new Set(this.cart.lines().filter((l) => !this.availableIds().has(l.id)).map((l) => l.id))
+            : new Set<number>()
+    );
 
-  pointsPreview = computed(() =>
-    this.cart.lines().reduce((sum, l) => sum + l.points_reward * l.quantity, 0)
-  );
+    pointsPreview = computed(() =>
+        this.cart.lines().reduce((sum, l) => sum + l.points_reward * l.quantity, 0)
+    );
 
-  canOrder = computed(
-    () =>
-      this.menuLoaded() &&
-      this.cart.lines().length > 0 &&
-      this.problemIds().size === 0 &&
-      (!this.isScheduled() || !!this.slot()) &&
-      !this.submitting()
-  );
+    canOrder = computed(
+        () =>
+            this.menuLoaded() &&
+            this.cart.lines().length > 0 &&
+            this.problemIds().size === 0 &&
+            (!this.isScheduled() || !!this.slot()) &&
+            !this.submitting()
+    );
 
-  constructor() {
-    this.loadMenu();
-  }
-
-  isProblem(id: number): boolean {
-    return this.problemIds().has(id);
-  }
-
-  loadMenu() {
-    this.menuError.set('');
-    this.menuService.getMenu().subscribe({
-      next: (categories) => {
-        const items = categories.flatMap((c) => c.items);
-        this.cart.syncWithMenu(items);
-        this.availableIds.set(new Set(items.filter((i) => i.is_available).map((i) => i.id)));
-        this.menuLoaded.set(true);
-      },
-      error: (err) => this.menuError.set(errorMessage(err)),
-    });
-  }
-
-  setPickup(mode: 'asap' | 'later') {
-    this.pickup.set(mode);
-    this.error.set('');
-    if (mode === 'later' && !this.date()) {
-      this.date.set(this.today);
-      this.loadSlots();
+    constructor() {
+        this.loadMenu();
     }
-  }
 
-  onDate(value: string) {
-    this.date.set(value);
-    this.loadSlots();
-  }
+    isProblem(id: number): boolean {
+        return this.problemIds().has(id);
+    }
 
-  loadSlots() {
-    const date = this.date();
-    if (!date) return;
-    this.slot.set('');
-    this.slots.set([]);
-    this.slotsError.set('');
-    this.slotsLoading.set(true);
-    this.orderService.pickupSlots(date).subscribe({
-      next: (res) => {
-        if (this.date() !== date) return;
-        this.slots.set(res.slots);
-        this.slotsLoading.set(false);
-      },
-      error: (err) => {
-        this.slotsError.set(errorMessage(err));
-        this.slotsLoading.set(false);
-      },
-    });
-  }
+    loadMenu() {
+        this.menuError.set('');
+        this.menuService.getMenu().subscribe({
+            next: (categories) => {
+                const items = categories.flatMap((c) => c.items);
+                this.cart.syncWithMenu(items);
+                this.availableIds.set(new Set(items.filter((i) => i.is_available).map((i) => i.id)));
+                this.menuLoaded.set(true);
+            },
+            error: (err) => this.menuError.set(errorMessage(err)),
+        });
+    }
 
-  place(method: PaymentMethod) {
-    if (!this.canOrder()) return;
-    this.submitting.set(true);
-    this.error.set('');
+    setPickup(mode: 'asap' | 'later') {
+        this.pickup.set(mode);
+        this.error.set('');
+        if (mode === 'later' && !this.date()) {
+            this.date.set(this.today);
+            this.loadSlots();
+        }
+    }
 
-    const body: CreateOrderBody = {
-      items: this.cart.lines().map((l) => ({ menu_item_id: l.id, quantity: l.quantity })),
-      payment_method: method,
-      ...(this.isScheduled() ? { scheduled_for: this.slot() } : {}),
-    };
+    onDate(value: string) {
+        this.date.set(value);
+        this.loadSlots();
+    }
 
-    this.orderService.createOrder(body).subscribe({
-      next: (res) => {
-        this.cart.clear();
-        this.placed.set(res.order);
-        this.submitting.set(false);
-      },
-      error: (err) => {
-        this.error.set(errorMessage(err));
-        this.submitting.set(false);
-      },
-    });
-  }
+    loadSlots() {
+        const date = this.date();
+        if (!date) return;
+        this.slot.set('');
+        this.slots.set([]);
+        this.slotsError.set('');
+        this.slotsLoading.set(true);
+        this.orderService.pickupSlots(date).subscribe({
+            next: (res) => {
+                if (this.date() !== date) return;
+                this.slots.set(res.slots);
+                this.slotsLoading.set(false);
+            },
+            error: (err) => {
+                this.slotsError.set(errorMessage(err));
+                this.slotsLoading.set(false);
+            },
+        });
+    }
+
+    place(method: PaymentMethod) {
+        if (!this.canOrder()) return;
+        this.submitting.set(true);
+        this.error.set('');
+
+        const body: CreateOrderBody = {
+            items: this.cart.lines().map((l) => ({ menu_item_id: l.id, quantity: l.quantity })),
+            payment_method: method,
+            ...(this.isScheduled() ? { scheduled_for: this.slot() } : {}),
+        };
+
+        this.orderService.createOrder(body).subscribe({
+            next: (res) => {
+                this.cart.clear();
+                this.submitting.set(false);
+                this.router.navigate(['/orders', res.order.id]);
+            },
+            error: (err) => {
+                this.error.set(errorMessage(err));
+                this.submitting.set(false);
+            },
+        });
+    }
 }

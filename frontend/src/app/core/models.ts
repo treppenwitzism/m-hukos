@@ -79,9 +79,19 @@ export interface Order {
   created_at: string;
   payment_method?: PaymentMethod | null;
   items: OrderItem[];
+  points_earned?: number;
 }
 
 export interface PickupSlots {
   date: string;
   slots: string[];
+}
+
+export interface OrderQr {
+  token: string;
+  url: string;
+  expires_at: string;
+  redeemed: boolean;
+  order_status: OrderStatus;
+  payment_due?: boolean;
 }
