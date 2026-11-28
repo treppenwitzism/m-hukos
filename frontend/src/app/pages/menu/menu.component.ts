@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { MenuService } from '../../core/menu.service';
-import { CartService } from '../../core/cart.service';
+import { CartService, MAX_QUANTITY } from '../../core/cart.service';
 import { Category } from '../../core/models';
 import { errorMessage } from '../../core/http-error';
 import { RouterLink } from '@angular/router';
@@ -56,9 +56,18 @@ import { RouterLink } from '@angular/router';
               <div class="row">
                 <strong>{{ item.price | currency: 'PHP' : 'symbol-narrow' : '1.0-2' }}</strong>
                 @if (item.is_available) {
-                  <button type="button" class="add" (click)="cart.add(item)">
-                    Add@if (cart.quantityOf(item.id) > 0) { ({{ cart.quantityOf(item.id) }}) }
-                  </button>
+                  @if (cart.quantityOf(item.id) === 0) {
+                    <button type="button" class="add" (click)="cart.add(item)">Add</button>
+                  } @else {
+                    <div class="stepper">
+                      <button type="button" [attr.aria-label]="'Remove one ' + item.name"
+                              (click)="cart.setQuantity(item.id, cart.quantityOf(item.id) - 1)">−</button>
+                      <span aria-live="polite">{{ cart.quantityOf(item.id) }}</span>
+                      <button type="button" [attr.aria-label]="'Add one ' + item.name"
+                              [disabled]="cart.quantityOf(item.id) >= maxQuantity"
+                              (click)="cart.add(item)">+</button>
+                    </div>
+                  }
                 } @else {
                   <button type="button" class="add" disabled>Unavailable</button>
                 }
@@ -70,6 +79,10 @@ import { RouterLink } from '@angular/router';
     </div>
   `,
     styles: `
+    .stepper { display: flex; align-items: center; border: 1.5px solid #3d4450; border-radius: 8px; }
+    .stepper button { width: 44px; height: 44px; border: 0; background: #fff; font-size: 20px; cursor: pointer; border-radius: 8px; }
+    .stepper button:disabled { color: #c5cad3; cursor: default; }
+    .stepper span { min-width: 28px; text-align: center; font-weight: 600; }
     .name, .photo { color: inherit; text-decoration: none; }
     .page { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
     .search { height: 44px; padding: 0 12px; border: 1.5px solid #3d4450; border-radius: 8px; font-size: 15px; }
@@ -98,6 +111,7 @@ import { RouterLink } from '@angular/router';
 export class MenuComponent {
     private menuService = inject(MenuService);
     cart = inject(CartService);
+    maxQuantity = MAX_QUANTITY;
 
     categories = signal<Category[]>([]);
     loading = signal(true);

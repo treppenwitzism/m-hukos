@@ -11,7 +11,7 @@ export interface CartLine {
 }
 
 const STORAGE_KEY = 'cart';
-const MAX_QUANTITY = 20; // keep in sync with MAX_QUANTITY in the backend order.service.js
+export const MAX_QUANTITY = 20; // keep in sync with MAX_QUANTITY in the backend order.service.js
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
