@@ -18,4 +18,8 @@ async function dashboard(req, res) {
   res.json(await Admin.dashboard());
 }
 
-module.exports = { listUsers, setRole, listOrders, dashboard };
+async function getOrder(req, res) {
+  res.json(await Admin.getOrder(parseId(req.params.id)));
+}
+
+module.exports = { listUsers, setRole, listOrders, dashboard, getOrder };

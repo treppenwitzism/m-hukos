@@ -32,20 +32,43 @@ async function setRole(id, role, db = pool) {
   await db.query('UPDATE users SET role = ? WHERE id = ?', [role, id]);
 }
 
-async function listOrders({ status, limit = 50, offset = 0 }, db = pool) {
-  const where = status ? 'WHERE o.status = ?' : '';
-  const params = status ? [status, limit, offset] : [limit, offset];
+async function listOrders({ status, scheduled, limit = 50, offset = 0 }, db = pool) {
+  const where = [];
+  const params = [];
+  if (status) {
+    where.push('o.status = ?');
+    params.push(status);
+  }
+  if (scheduled) where.push('o.scheduled_for IS NOT NULL');
+  params.push(limit, offset);
+
   const [rows] = await db.query(
-    `SELECT o.id, o.status, o.total, o.scheduled_for, o.created_at,
+    `SELECT o.id, o.status, o.payment_method, o.total, o.scheduled_for, o.created_at,
             u.name AS customer_name
        FROM orders o
        JOIN users u ON u.id = o.user_id
-       ${where}
+       ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
       ORDER BY o.id DESC
       LIMIT ? OFFSET ?`,
     params
   );
   return rows;
+}
+
+async function countOrders({ status, scheduled }, db = pool) {
+  const where = [];
+  const params = [];
+  if (status) {
+    where.push('status = ?');
+    params.push(status);
+  }
+  if (scheduled) where.push('scheduled_for IS NOT NULL');
+
+  const [rows] = await db.query(
+    `SELECT COUNT(*) AS n FROM orders ${where.length ? 'WHERE ' + where.join(' AND ') : ''}`,
+    params
+  );
+  return Number(rows[0].n);
 }
 
 async function todayStats(from, to, db = pool) {
@@ -69,5 +92,5 @@ async function countAwaitingPickup(db = pool) {
 }
 
 module.exports = {
-  listUsers, findUser, setRole, listOrders, todayStats, countAwaitingPickup,
+  listUsers, findUser, setRole, listOrders, todayStats, countAwaitingPickup, countOrders
 };

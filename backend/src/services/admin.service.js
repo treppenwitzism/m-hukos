@@ -2,6 +2,7 @@ const Admin = require('../models/admin.model');
 const Order = require('../models/order.model');
 const Schedule = require('./schedule.service');
 const httpError = require('../utils/httpError');
+const QrToken = require('../models/qrToken.model');
 
 const ROLES = ['customer', 'staff', 'admin'];
 const ORDER_STATUSES = ['pending', 'paid', 'fulfilled', 'expired', 'cancelled'];
@@ -41,7 +42,13 @@ async function listOrders(query) {
   }
   const limit = clampInt(query.limit, 50, 100);
   const offset = clampInt(query.offset, 0, 100000);
-  return Admin.listOrders({ status: query.status, limit, offset });
+  const scheduled = query.scheduled === '1' || query.scheduled === 'true';
+
+  const [orders, total] = await Promise.all([
+    Admin.listOrders({ status: query.status, scheduled, limit, offset }),
+    Admin.countOrders({ status: query.status, scheduled }),
+  ]);
+  return { orders, total };
 }
 
 async function dashboard() {
@@ -64,4 +71,18 @@ async function dashboard() {
   };
 }
 
-module.exports = { listUsers, setRole, listOrders, dashboard };
+async function getOrder(id) {
+  const order = await Order.findOrderById(id);
+  if (!order) throw httpError(404, 'Order not found.');
+
+  const customer = await Admin.findUser(order.user_id);
+  const qr = await QrToken.findByOrderId(id);
+
+  return {
+    order,
+    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    qr: qr ? { expires_at: qr.expires_at, redeemed_at: qr.redeemed_at } : null,
+  };
+}
+
+module.exports = { listUsers, setRole, listOrders, dashboard, getOrder };
