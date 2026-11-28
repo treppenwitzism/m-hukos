@@ -68,6 +68,18 @@ export class CartService {
         this.lines.set([]);
     }
 
+    syncWithMenu(items: MenuItem[]) {
+        const byId = new Map(items.map((i) => [i.id, i]));
+        this.lines.update((lines) =>
+            lines.map((l) => {
+                const m = byId.get(l.id);
+                return m
+                    ? { ...l, name: m.name, price: m.price, image_url: m.image_url, points_reward: m.points_reward }
+                    : l;
+            })
+        );
+    }
+
     private restore(): CartLine[] {
         try {
             const data = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
