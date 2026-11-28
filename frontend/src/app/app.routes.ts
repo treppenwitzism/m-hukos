@@ -12,6 +12,7 @@ import { StaffLayoutComponent } from './layout/staff-layout.component';
 import { StaffVerifyComponent } from './pages/staff/staff-verify.component';
 import { AdminLayoutComponent } from './layout/admin-layout.component';
 import { AdminDashboardComponent } from './pages/admin/dashboard.component';
+import { AdminMenuComponent } from './pages/admin/menu-admin.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -30,6 +31,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('admin')],
     children: [
       { path: '', component: AdminDashboardComponent },
+      { path: 'menu', component: AdminMenuComponent },
       { path: '**', redirectTo: '' },
     ],
   },
