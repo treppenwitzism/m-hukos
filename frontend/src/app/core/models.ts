@@ -108,3 +108,13 @@ export interface PointsSummary {
   balance: number;
   history: PointsEntry[];
 }
+
+export interface StaffLookup {
+  state: 'ready' | 'redeemed' | 'expired' | 'cancelled';
+  payment_due: boolean;
+  amount_due: number;
+  expires_at: string;
+  redeemed_at: string | null;
+  customer: { name: string };
+  order: Order;
+}

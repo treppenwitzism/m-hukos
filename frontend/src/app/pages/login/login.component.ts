@@ -92,7 +92,8 @@ export class LoginComponent {
     request.subscribe({
       next: () => {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        this.router.navigateByUrl(returnUrl || '/');
+        const role = this.auth.role();
+        this.router.navigateByUrl(returnUrl || (role === 'staff' ? '/staff' : '/'));
       },
       error: (err) => {
         this.error.set(errorMessage(err));
