@@ -7,6 +7,7 @@ import { authGuard } from './core/guards';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { OrderDetailComponent } from './pages/orders/order-detail.component';
+import { AccountComponent } from './pages/account/account.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -19,6 +20,7 @@ export const routes: Routes = [
       { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
       { path: 'orders', component: OrdersComponent, canActivate: [authGuard] },
       { path: 'orders/:id', component: OrderDetailComponent, canActivate: [authGuard] },
+      { path: 'account', component: AccountComponent, canActivate: [authGuard] },
     ],
   },
   { path: '**', redirectTo: '' },

@@ -95,3 +95,16 @@ export interface OrderQr {
   order_status: OrderStatus;
   payment_due?: boolean;
 }
+
+export interface PointsEntry {
+  id: number;
+  order_id: number | null;
+  amount: number;
+  reason: string;
+  created_at: string;
+}
+
+export interface PointsSummary {
+  balance: number;
+  history: PointsEntry[];
+}
