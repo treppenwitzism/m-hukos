@@ -6,11 +6,12 @@ import { OrderService } from '../../core/order.service';
 import { Order, OrderQr } from '../../core/models';
 import { errorMessage } from '../../core/http-error';
 import { hasQr, statusLabel } from '../../core/order-utils';
+import { PointsService } from '../../core/points.service';
 
 @Component({
-  selector: 'app-order-detail',
-  imports: [RouterLink, CurrencyPipe, DatePipe],
-  template: `
+    selector: 'app-order-detail',
+    imports: [RouterLink, CurrencyPipe, DatePipe],
+    template: `
     <div class="page">
       <a routerLink="/orders" class="back">&lt; My orders</a>
 
@@ -97,7 +98,7 @@ import { hasQr, statusLabel } from '../../core/order-utils';
       }
     </div>
   `,
-  styles: `
+    styles: `
     .page { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 16px; }
     .back { display: inline-flex; align-items: center; min-height: 44px; font-size: 15px; }
     .note { text-align: center; color: #5c6470; margin: 24px 0; }
@@ -127,63 +128,66 @@ import { hasQr, statusLabel } from '../../core/order-utils';
   `,
 })
 export class OrderDetailComponent {
-  private route = inject(ActivatedRoute);
-  private orderService = inject(OrderService);
-  private destroyRef = inject(DestroyRef);
+    private route = inject(ActivatedRoute);
+    private orderService = inject(OrderService);
+    private destroyRef = inject(DestroyRef);
+    private points = inject(PointsService);
 
-  private id = Number(this.route.snapshot.paramMap.get('id'));
+    private id = Number(this.route.snapshot.paramMap.get('id'));
 
-  readonly label = statusLabel;
-  readonly has = hasQr;
+    readonly label = statusLabel;
+    readonly has = hasQr;
 
-  order = signal<Order | null>(null);
-  qr = signal<OrderQr | null>(null);
-  qrImage = signal('');
-  qrError = signal('');
-  loading = signal(true);
-  error = signal('');
+    order = signal<Order | null>(null);
+    qr = signal<OrderQr | null>(null);
+    qrImage = signal('');
+    qrError = signal('');
+    loading = signal(true);
+    error = signal('');
 
-  constructor() {
-    this.load();
+    constructor() {
+        this.load();
 
-    const timer = setInterval(() => this.refresh(), 8000);
-    this.destroyRef.onDestroy(() => clearInterval(timer));
-  }
+        const timer = setInterval(() => this.refresh(), 8000);
+        this.destroyRef.onDestroy(() => clearInterval(timer));
+    }
 
-  private load() {
-    this.orderService.get(this.id).subscribe({
-      next: (order) => {
-        this.order.set(order);
-        this.loading.set(false);
-        this.loadQr(order);
-      },
-      error: (err) => {
-        this.error.set(errorMessage(err));
-        this.loading.set(false);
-      },
-    });
-  }
+    private load() {
+        this.orderService.get(this.id).subscribe({
+            next: (order) => {
+                this.order.set(order);
+                this.loading.set(false);
+                this.loadQr(order);
+            },
+            error: (err) => {
+                this.error.set(errorMessage(err));
+                this.loading.set(false);
+            },
+        });
+    }
 
-  private refresh() {
-    const current = this.order();
-    if (!current || !hasQr(current)) return;
-    this.orderService.get(this.id).subscribe({
-      next: (updated) => {
-        this.order.set(updated);
-        if (!hasQr(updated)) this.qrImage.set('');
-      },
-      error: () => {},
-    });
-  }
+    private refresh() {
+        const current = this.order();
+        if (!current || !hasQr(current)) return;
+        this.orderService.get(this.id).subscribe({
+            next: (updated) => {
+                const wasFulfilled = current.status === 'fulfilled';
+                this.order.set(updated);
+                if (!hasQr(updated)) this.qrImage.set('');
+                if (updated.status === 'fulfilled' && !wasFulfilled) this.points.refresh();
+            },
+            error: () => { },
+        });
+    }
 
-  private loadQr(order: Order) {
-    if (!hasQr(order) || this.qrImage()) return;
-    this.orderService.qr(this.id).subscribe({
-      next: async (qr) => {
-        this.qr.set(qr);
-        this.qrImage.set(await toDataURL(qr.url, { width: 240, margin: 1 }));
-      },
-      error: (err) => this.qrError.set(errorMessage(err)),
-    });
-  }
+    private loadQr(order: Order) {
+        if (!hasQr(order) || this.qrImage()) return;
+        this.orderService.qr(this.id).subscribe({
+            next: async (qr) => {
+                this.qr.set(qr);
+                this.qrImage.set(await toDataURL(qr.url, { width: 240, margin: 1 }));
+            },
+            error: (err) => this.qrError.set(errorMessage(err)),
+        });
+    }
 }
