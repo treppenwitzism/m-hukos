@@ -10,6 +10,8 @@ import { OrderDetailComponent } from './pages/orders/order-detail.component';
 import { AccountComponent } from './pages/account/account.component';
 import { StaffLayoutComponent } from './layout/staff-layout.component';
 import { StaffVerifyComponent } from './pages/staff/staff-verify.component';
+import { AdminLayoutComponent } from './layout/admin-layout.component';
+import { AdminDashboardComponent } from './pages/admin/dashboard.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -20,6 +22,15 @@ export const routes: Routes = [
     children: [
       { path: '', component: StaffVerifyComponent },
       { path: 'verify/:token', component: StaffVerifyComponent },
+    ],
+  },
+  {
+    path: 'admin',
+    component: AdminLayoutComponent,
+    canActivate: [authGuard, roleGuard('admin')],
+    children: [
+      { path: '', component: AdminDashboardComponent },
+      { path: '**', redirectTo: '' },
     ],
   },
   {
