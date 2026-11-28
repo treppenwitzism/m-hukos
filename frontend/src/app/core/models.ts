@@ -57,3 +57,31 @@ export interface MyReviewStatus {
   can_review: boolean;
   review: MyReview | null;
 }
+
+export type OrderStatus = 'pending' | 'paid' | 'fulfilled' | 'expired' | 'cancelled';
+export type PaymentMethod = 'counter' | 'paymongo';
+
+export interface OrderItem {
+  id: number;
+  menu_item_id: number;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+}
+
+export interface Order {
+  id: number;
+  user_id: number;
+  status: OrderStatus;
+  total: number;
+  scheduled_for: string | null;
+  created_at: string;
+  payment_method?: PaymentMethod | null;
+  items: OrderItem[];
+}
+
+export interface PickupSlots {
+  date: string;
+  slots: string[];
+}
