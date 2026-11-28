@@ -2,13 +2,12 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { CartService } from '../../core/cart.service';
+import { CartService, MAX_QUANTITY } from '../../core/cart.service';
 import { MenuService } from '../../core/menu.service';
 import { ReviewService } from '../../core/review.service';
 import { ItemReviews, MenuItem, MyReviewStatus } from '../../core/models';
 import { errorMessage } from '../../core/http-error';
 
-const MAX_QUANTITY = 20; // keep in sync with cart.service.ts and order.service.js
 
 @Component({
   selector: 'app-item',
